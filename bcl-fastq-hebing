@@ -1,0 +1,40 @@
+awk '{print $1}' /data/xujh/2023_10_12_10_16_hebing/name.txt |uniq|while read id;
+do mkdir  /data/xujh/2023_10_12_10_16_hebing/${id} /data/xujh/2023_10_12_10_16_hebing/${id}/00.RawData
+grep ${id} /data/xujh/2023_10_12_10_16_hebing/name.txt|awk '{print $2}'|while read i;
+do cat /data/xujh/2023_10_12_bcl_PJ_zong/${id}/00.RawData/${i}/${i}_*R1* /data/xujh/2023_10_16_bcl_PJ/${id}/00.RawData/${i}/${i}_*R1*  > /data/xujh/2023_10_12_10_16_hebing/${id}/${i}_R1.fastq.gz 
+cat /data/xujh/2023_10_12_bcl_PJ_zong/${id}/00.RawData/${i}/${i}_*R2* /data/xujh/2023_10_16_bcl_PJ/${id}/00.RawData/${i}/${i}_*R2*  > /data/xujh/2023_10_12_10_16_hebing/${id}/${i}_R2.fastq.gz
+done
+done
+
+awk '{print $1}' /data/xujh/2023_10_12_10_16_hebing/name.txt |uniq|while read id;
+do mkdir /data/xujh/2023_10_12_10_16_hebing/${id}/01.CleanData  /data/xujh/2023_10_12_10_16_hebing/${id}/02.QC /data/xujh/2023_10_12_10_16_hebing/${id}/02.QC/json_html
+mv /data/xujh/2023_10_12_10_16_hebing/${id}/*.gz /data/xujh/2023_10_12_10_16_hebing/${id}/00.RawData
+grep ${id} /data/xujh/2023_10_12_10_16_hebing/name.txt|awk '{print $2}'|while read i;
+do /data/software/package/fastp/fastp -i /data/xujh/2023_10_12_10_16_hebing/${id}/00.RawData/${i}_*R1* -I /data/xujh/2023_10_12_10_16_hebing/${id}/00.RawData/${i}_*R2* -o /data/xujh/2023_10_12_10_16_hebing/${id}/01.CleanData/${i}_clean_R1.fastq.gz -O /data/xujh/2023_10_12_10_16_hebing/${id}/01.CleanData/${i}_clean_R2.fastq.gz -w 20 -j /data/xujh/2023_10_12_10_16_hebing/${id}/02.QC/json_html/${i}.json -h /data/xujh/2023_10_12_10_16_hebing/${id}/02.QC/json_html/${i}.html
+done
+done
+
+export PATH=/data/software/tools/miniconda/bin:$PATH
+source activate /data/software/tools/miniconda/envs/bcl_report
+awk '{print $1}' /data/xujh/2023_10_12_10_16_hebing/name.txt |uniq|while read id;
+do  mkdir /data/xujh/2023_10_12_10_16_hebing/${id}/03.Report 
+python /data/xujh/report/create_report.py -in_dir /data/xujh/2023_10_12_10_16_hebing/${id}/02.QC/json_html -out_dir  /data/xujh/2023_10_12_10_16_hebing/${id}/03.Report  -html_path /data/xujh/report/findal_report_template -report_title '测序以及数据质控'
+done
+
+awk '{print $1}' /data/xujh/2023_10_12_10_16_hebing/name.txt |uniq|while read id;
+do grep ${id} /data/xujh/2023_10_12_10_16_hebing/name.txt|awk '{print $2}'|while read i;
+do mkdir /data/xujh/2023_10_12_10_16_hebing/${id}/00.RawData/${i} /data/xujh/2023_10_12_10_16_hebing/${id}/01.CleanData/${i}
+mv /data/xujh/2023_10_12_10_16_hebing/${id}/00.RawData/${i}_*.gz /data/xujh/2023_10_12_10_16_hebing/${id}/00.RawData/${i}
+mv /data/xujh/2023_10_12_10_16_hebing/${id}/01.CleanData/${i}_*.gz /data/xujh/2023_10_12_10_16_hebing/${id}/01.CleanData/${i}
+done
+done
+
+awk '{print $1}' /data/xujh/2023_10_12_10_16_hebing/name.txt |uniq|while read id;
+do cd /data/xujh/2023_10_12_10_16_hebing/${id}
+md5sum ./00.RawData/*/*.gz >/data/xujh/2023_10_12_10_16_hebing/${id}/md5_raw.txt
+cd /data/xujh/2023_10_12_10_16_hebing/${id}
+md5sum ./01.CleanData/*/*.gz > /data/xujh/2023_10_12_10_16_hebing/${id}/md5_clean.txt
+cat /data/xujh/2023_10_12_10_16_hebing/${id}/md5_raw.txt /data/xujh/2023_10_12_10_16_hebing/${id}/md5_clean.txt >/data/xujh/2023_10_12_10_16_hebing/${id}/md5.txt
+rm -rf /data/xujh/2023_10_12_10_16_hebing/${id}/md5_raw.txt /data/xujh/2023_10_12_10_16_hebing/${id}/md5_clean.txt
+done
+
